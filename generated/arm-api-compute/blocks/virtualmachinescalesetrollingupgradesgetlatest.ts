@@ -1,0 +1,172 @@
+import { AppBlock, events } from "@slflows/sdk/v1";
+import { makeAzureRequest } from "../utils/azureRequest";
+
+const VirtualMachineScaleSetRollingUpgrades_GetLatest: AppBlock = {
+  name: "Virtual Machine Scale Set Rolling Upgrades / Get Latest",
+  description:
+    "Gets the status of the latest virtual machine scale set rolling upgrade.",
+  category: "Virtual Machine Scale Set Rolling Upgrades",
+  inputs: {
+    default: {
+      config: {
+        vmScaleSetName: {
+          name: "VM Scale Set Name",
+          description: "Name of the vm scale set",
+          type: "string",
+          required: true,
+        },
+        subscriptionId: {
+          name: "Subscription ID",
+          description:
+            "Azure subscription ID (optional, falls back to app-level default if not provided)",
+          type: "string",
+          required: false,
+        },
+        resourceGroupName: {
+          name: "Resource Group Name",
+          description:
+            "Azure resource group name (optional, falls back to app-level default if not provided)",
+          type: "string",
+          required: false,
+        },
+      },
+      onEvent: async (input) => {
+        const url =
+          `https://management.azure.com/subscriptions/${input.event.inputConfig.subscriptionId || input.app.config.subscriptionId}/resourceGroups/${input.event.inputConfig.resourceGroupName || input.app.config.resourceGroupName}/providers/Microsoft.Compute/virtualMachineScaleSets/${input.event.inputConfig.vmScaleSetName}/rollingUpgrades/latest` +
+          "?api-version=2024-11-01";
+
+        const result = await makeAzureRequest(
+          input,
+          url,
+          "GET",
+          undefined,
+          undefined,
+          false,
+        );
+        await events.emit(result || {});
+      },
+    },
+  },
+  outputs: {
+    default: {
+      possiblePrimaryParents: ["default"],
+      type: {
+        type: "object",
+        properties: {
+          properties: {
+            type: "object",
+            properties: {
+              policy: {
+                type: "object",
+                properties: {
+                  maxBatchInstancePercent: {
+                    type: "integer",
+                  },
+                  maxUnhealthyInstancePercent: {
+                    type: "integer",
+                  },
+                  maxUnhealthyUpgradedInstancePercent: {
+                    type: "integer",
+                  },
+                  pauseTimeBetweenBatches: {
+                    type: "string",
+                  },
+                  enableCrossZoneUpgrade: {
+                    type: "boolean",
+                  },
+                  prioritizeUnhealthyInstances: {
+                    type: "boolean",
+                  },
+                  rollbackFailedInstancesOnPolicyBreach: {
+                    type: "boolean",
+                  },
+                  maxSurge: {
+                    type: "boolean",
+                  },
+                },
+              },
+              runningStatus: {
+                type: "object",
+                properties: {
+                  code: {
+                    type: "string",
+                  },
+                  startTime: {
+                    type: "string",
+                  },
+                  lastAction: {
+                    type: "string",
+                  },
+                  lastActionTime: {
+                    type: "string",
+                  },
+                },
+              },
+              progress: {
+                type: "object",
+                properties: {
+                  successfulInstanceCount: {
+                    type: "integer",
+                  },
+                  failedInstanceCount: {
+                    type: "integer",
+                  },
+                  inProgressInstanceCount: {
+                    type: "integer",
+                  },
+                  pendingInstanceCount: {
+                    type: "integer",
+                  },
+                },
+              },
+              error: {
+                type: "object",
+                properties: {
+                  details: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        code: {
+                          type: "string",
+                        },
+                        target: {
+                          type: "string",
+                        },
+                        message: {
+                          type: "string",
+                        },
+                      },
+                    },
+                  },
+                  innererror: {
+                    type: "object",
+                    properties: {
+                      exceptiontype: {
+                        type: "string",
+                      },
+                      errordetail: {
+                        type: "string",
+                      },
+                    },
+                  },
+                  code: {
+                    type: "string",
+                  },
+                  target: {
+                    type: "string",
+                  },
+                  message: {
+                    type: "string",
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export default VirtualMachineScaleSetRollingUpgrades_GetLatest;

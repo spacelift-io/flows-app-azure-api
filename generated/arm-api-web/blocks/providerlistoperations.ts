@@ -1,0 +1,202 @@
+import { AppBlock, events } from "@slflows/sdk/v1";
+import { makeAzureRequest } from "../utils/azureRequest";
+
+const Provider_ListOperations: AppBlock = {
+  name: "Provider / List Operations",
+  description:
+    "Description for Gets all available operations for the Microsoft.Web resource provider. Also exposes resource metric definitions",
+  category: "Provider",
+  inputs: {
+    default: {
+      config: {},
+      onEvent: async (input) => {
+        const url =
+          `https://management.azure.com/providers/Microsoft.Web/operations` +
+          "?api-version=2024-11-01";
+
+        const result = await makeAzureRequest(
+          input,
+          url,
+          "GET",
+          undefined,
+          undefined,
+          false,
+        );
+        await events.emit(result || {});
+      },
+    },
+  },
+  outputs: {
+    default: {
+      possiblePrimaryParents: ["default"],
+      type: {
+        type: "object",
+        properties: {
+          value: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                name: {
+                  type: "string",
+                },
+                isDataAction: {
+                  type: "boolean",
+                },
+                display: {
+                  type: "object",
+                  properties: {
+                    provider: {
+                      type: "string",
+                    },
+                    resource: {
+                      type: "string",
+                    },
+                    operation: {
+                      type: "string",
+                    },
+                    description: {
+                      type: "string",
+                    },
+                  },
+                },
+                origin: {
+                  type: "string",
+                },
+                properties: {
+                  type: "object",
+                  properties: {
+                    serviceSpecification: {
+                      type: "object",
+                      properties: {
+                        metricSpecifications: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              name: {
+                                type: "string",
+                              },
+                              displayName: {
+                                type: "string",
+                              },
+                              displayDescription: {
+                                type: "string",
+                              },
+                              unit: {
+                                type: "string",
+                              },
+                              aggregationType: {
+                                type: "string",
+                              },
+                              supportsInstanceLevelAggregation: {
+                                type: "boolean",
+                              },
+                              enableRegionalMdmAccount: {
+                                type: "boolean",
+                              },
+                              sourceMdmAccount: {
+                                type: "string",
+                              },
+                              sourceMdmNamespace: {
+                                type: "string",
+                              },
+                              metricFilterPattern: {
+                                type: "string",
+                              },
+                              fillGapWithZero: {
+                                type: "boolean",
+                              },
+                              isInternal: {
+                                type: "boolean",
+                              },
+                              dimensions: {
+                                type: "array",
+                                items: {
+                                  type: "object",
+                                  properties: {
+                                    name: {
+                                      type: "string",
+                                    },
+                                    displayName: {
+                                      type: "string",
+                                    },
+                                    internalName: {
+                                      type: "string",
+                                    },
+                                    toBeExportedForShoebox: {
+                                      type: "boolean",
+                                    },
+                                  },
+                                },
+                              },
+                              category: {
+                                type: "string",
+                              },
+                              availabilities: {
+                                type: "array",
+                                items: {
+                                  type: "object",
+                                  properties: {
+                                    timeGrain: {
+                                      type: "string",
+                                    },
+                                    blobDuration: {
+                                      type: "string",
+                                    },
+                                  },
+                                },
+                              },
+                              supportedTimeGrainTypes: {
+                                type: "array",
+                                items: {
+                                  type: "string",
+                                },
+                              },
+                              supportedAggregationTypes: {
+                                type: "array",
+                                items: {
+                                  type: "string",
+                                },
+                              },
+                            },
+                          },
+                        },
+                        logSpecifications: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              name: {
+                                type: "string",
+                              },
+                              displayName: {
+                                type: "string",
+                              },
+                              blobDuration: {
+                                type: "string",
+                              },
+                              logFilterPattern: {
+                                type: "string",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          nextLink: {
+            type: "string",
+          },
+        },
+        required: ["value"],
+      },
+    },
+  },
+};
+
+export default Provider_ListOperations;

@@ -1,0 +1,174 @@
+import { AppBlock, events } from "@slflows/sdk/v1";
+import { makeAzureRequest } from "../utils/azureRequest";
+
+const SetCertificateIssuer: AppBlock = {
+  name: "Set Certificate Issuer",
+  description:
+    "The SetCertificateIssuer operation adds or updates the specified certificate issuer. This operation requires the certificates/setissuers permission.",
+  category: "General",
+  inputs: {
+    default: {
+      config: {
+        issuer_name: {
+          name: "Issuer Name",
+          description: "Name of the issuer-",
+          type: "string",
+          required: true,
+        },
+        parameter: {
+          name: "Parameter",
+          description: "Request parameters",
+          type: {
+            type: "object",
+            properties: {
+              provider: {
+                type: "string",
+              },
+              credentials: {
+                type: "object",
+                properties: {
+                  account_id: {
+                    type: "string",
+                  },
+                  pwd: {
+                    type: "string",
+                  },
+                },
+              },
+              org_details: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                  },
+                  admin_details: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        first_name: {
+                          type: "string",
+                        },
+                        last_name: {
+                          type: "string",
+                        },
+                        email: {
+                          type: "string",
+                        },
+                        phone: {
+                          type: "string",
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              attributes: {
+                type: "object",
+                properties: {
+                  enabled: {
+                    type: "boolean",
+                  },
+                  created: {
+                    type: "number",
+                  },
+                  updated: {
+                    type: "number",
+                  },
+                },
+              },
+            },
+            required: ["provider"],
+          },
+          required: true,
+        },
+      },
+      onEvent: async (input) => {
+        const requestBody = input.event.inputConfig.parameter;
+
+        const url = `https://${input.event.inputConfig.storageAccount || input.app.config.storageAccount}.vault.azure.net/certificates/issuers/${input.event.inputConfig.issuer_name}`;
+
+        const result = await makeAzureRequest(
+          input,
+          url,
+          "PUT",
+          requestBody,
+          undefined,
+          input.event.inputConfig.isBinaryData || false,
+        );
+        await events.emit(result || {});
+      },
+    },
+  },
+  outputs: {
+    default: {
+      possiblePrimaryParents: ["default"],
+      type: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+          },
+          provider: {
+            type: "string",
+          },
+          credentials: {
+            type: "object",
+            properties: {
+              account_id: {
+                type: "string",
+              },
+              pwd: {
+                type: "string",
+              },
+            },
+          },
+          org_details: {
+            type: "object",
+            properties: {
+              id: {
+                type: "string",
+              },
+              admin_details: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    first_name: {
+                      type: "string",
+                    },
+                    last_name: {
+                      type: "string",
+                    },
+                    email: {
+                      type: "string",
+                    },
+                    phone: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          attributes: {
+            type: "object",
+            properties: {
+              enabled: {
+                type: "boolean",
+              },
+              created: {
+                type: "integer",
+              },
+              updated: {
+                type: "integer",
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export default SetCertificateIssuer;

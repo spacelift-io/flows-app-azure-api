@@ -1,0 +1,223 @@
+import { AppBlock, events } from "@slflows/sdk/v1";
+import { makeAzureRequest } from "../utils/azureRequest";
+
+const Service_GetProperties: AppBlock = {
+  name: "Service / Get Properties",
+  description:
+    "gets the properties of a storage account's Blob service, including properties for Storage Analytics and CORS (Cross-Origin Resource Sharing) rules.",
+  category: "Service",
+  inputs: {
+    default: {
+      config: {
+        timeout: {
+          name: "Timeout",
+          type: "number",
+          required: false,
+        },
+        x_ms_client_request_id: {
+          name: "Client Request ID",
+          description:
+            "Provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage analytics logging is enabled.",
+          type: "string",
+          required: false,
+        },
+      },
+      onEvent: async (input) => {
+        const additionalHeaders: Record<string, string> = {};
+        if (input.event.inputConfig.x_ms_client_request_id) {
+          additionalHeaders["x-ms-client-request-id"] = String(
+            input.event.inputConfig.x_ms_client_request_id,
+          );
+        }
+
+        const url =
+          `https://${input.event.inputConfig.storageAccount || input.app.config.storageAccount}.blob.core.windows.net/` +
+          "?restype=service&comp=properties" +
+          (input.event.inputConfig.timeout
+            ? `&timeout=${input.event.inputConfig.timeout}`
+            : "");
+
+        const result = await makeAzureRequest(
+          input,
+          url,
+          "GET",
+          undefined,
+          additionalHeaders,
+          false,
+        );
+        await events.emit(result || {});
+      },
+    },
+  },
+  outputs: {
+    default: {
+      possiblePrimaryParents: ["default"],
+      type: {
+        type: "object",
+        properties: {
+          Logging: {
+            type: "object",
+            properties: {
+              Version: {
+                type: "string",
+              },
+              Delete: {
+                type: "boolean",
+              },
+              Read: {
+                type: "boolean",
+              },
+              Write: {
+                type: "boolean",
+              },
+              RetentionPolicy: {
+                type: "object",
+                properties: {
+                  Enabled: {
+                    type: "boolean",
+                  },
+                  Days: {
+                    type: "integer",
+                  },
+                  AllowPermanentDelete: {
+                    type: "boolean",
+                  },
+                },
+                required: ["Enabled"],
+              },
+            },
+            required: ["Version", "Delete", "Read", "Write", "RetentionPolicy"],
+          },
+          HourMetrics: {
+            type: "object",
+            properties: {
+              Version: {
+                type: "string",
+              },
+              Enabled: {
+                type: "boolean",
+              },
+              IncludeAPIs: {
+                type: "boolean",
+              },
+              RetentionPolicy: {
+                type: "object",
+                properties: {
+                  Enabled: {
+                    type: "boolean",
+                  },
+                  Days: {
+                    type: "integer",
+                  },
+                  AllowPermanentDelete: {
+                    type: "boolean",
+                  },
+                },
+                required: ["Enabled"],
+              },
+            },
+            required: ["Enabled"],
+          },
+          MinuteMetrics: {
+            type: "object",
+            properties: {
+              Version: {
+                type: "string",
+              },
+              Enabled: {
+                type: "boolean",
+              },
+              IncludeAPIs: {
+                type: "boolean",
+              },
+              RetentionPolicy: {
+                type: "object",
+                properties: {
+                  Enabled: {
+                    type: "boolean",
+                  },
+                  Days: {
+                    type: "integer",
+                  },
+                  AllowPermanentDelete: {
+                    type: "boolean",
+                  },
+                },
+                required: ["Enabled"],
+              },
+            },
+            required: ["Enabled"],
+          },
+          Cors: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                AllowedOrigins: {
+                  type: "string",
+                },
+                AllowedMethods: {
+                  type: "string",
+                },
+                AllowedHeaders: {
+                  type: "string",
+                },
+                ExposedHeaders: {
+                  type: "string",
+                },
+                MaxAgeInSeconds: {
+                  type: "integer",
+                },
+              },
+              required: [
+                "AllowedOrigins",
+                "AllowedMethods",
+                "AllowedHeaders",
+                "ExposedHeaders",
+                "MaxAgeInSeconds",
+              ],
+            },
+          },
+          DefaultServiceVersion: {
+            type: "string",
+          },
+          DeleteRetentionPolicy: {
+            type: "object",
+            properties: {
+              Enabled: {
+                type: "boolean",
+              },
+              Days: {
+                type: "integer",
+              },
+              AllowPermanentDelete: {
+                type: "boolean",
+              },
+            },
+            required: ["Enabled"],
+          },
+          StaticWebsite: {
+            type: "object",
+            properties: {
+              Enabled: {
+                type: "boolean",
+              },
+              IndexDocument: {
+                type: "string",
+              },
+              ErrorDocument404Path: {
+                type: "string",
+              },
+              DefaultIndexDocumentPath: {
+                type: "string",
+              },
+            },
+            required: ["Enabled"],
+          },
+        },
+      },
+    },
+  },
+};
+
+export default Service_GetProperties;

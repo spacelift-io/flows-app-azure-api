@@ -1,0 +1,67 @@
+import { AppBlock, events } from "@slflows/sdk/v1";
+import { makeAzureRequest } from "../utils/azureRequest";
+
+const ExpressRoutePortAuthorizations_Delete: AppBlock = {
+  name: "Express Route Port Authorizations / Delete",
+  description:
+    "Deletes the specified authorization from the specified express route port.",
+  category: "Express Route Port Authorizations",
+  inputs: {
+    default: {
+      config: {
+        expressRoutePortName: {
+          name: "Express Route Port Name",
+          description: "Name of the express route port",
+          type: "string",
+          required: true,
+        },
+        authorizationName: {
+          name: "Authorization Name",
+          description: "Name of the authorization",
+          type: "string",
+          required: true,
+        },
+        subscriptionId: {
+          name: "Subscription ID",
+          description:
+            "Azure subscription ID (optional, falls back to app-level default if not provided)",
+          type: "string",
+          required: false,
+        },
+        resourceGroupName: {
+          name: "Resource Group Name",
+          description:
+            "Azure resource group name (optional, falls back to app-level default if not provided)",
+          type: "string",
+          required: false,
+        },
+      },
+      onEvent: async (input) => {
+        const url =
+          `https://management.azure.com/subscriptions/${input.event.inputConfig.subscriptionId || input.app.config.subscriptionId}/resourceGroups/${input.event.inputConfig.resourceGroupName || input.app.config.resourceGroupName}/providers/Microsoft.Network/expressRoutePorts/${input.event.inputConfig.expressRoutePortName}/authorizations/${input.event.inputConfig.authorizationName}` +
+          "?api-version=2024-10-01";
+
+        const result = await makeAzureRequest(
+          input,
+          url,
+          "DELETE",
+          undefined,
+          undefined,
+          false,
+        );
+        await events.emit(result || {});
+      },
+    },
+  },
+  outputs: {
+    default: {
+      possiblePrimaryParents: ["default"],
+      type: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
+  },
+};
+
+export default ExpressRoutePortAuthorizations_Delete;

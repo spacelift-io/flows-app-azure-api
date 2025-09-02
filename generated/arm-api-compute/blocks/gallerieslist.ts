@@ -1,0 +1,246 @@
+import { AppBlock, events } from "@slflows/sdk/v1";
+import { makeAzureRequest } from "../utils/azureRequest";
+
+const Galleries_List: AppBlock = {
+  name: "Galleries / List",
+  description: "List galleries under a subscription.",
+  category: "Galleries",
+  inputs: {
+    default: {
+      config: {
+        subscriptionId: {
+          name: "Subscription ID",
+          description:
+            "Azure subscription ID (optional, falls back to app-level default if not provided)",
+          type: "string",
+          required: false,
+        },
+      },
+      onEvent: async (input) => {
+        const url =
+          `https://management.azure.com/subscriptions/${input.event.inputConfig.subscriptionId || input.app.config.subscriptionId}/providers/Microsoft.Compute/galleries` +
+          "?api-version=2024-03-03";
+
+        const result = await makeAzureRequest(
+          input,
+          url,
+          "GET",
+          undefined,
+          undefined,
+          false,
+        );
+        await events.emit(result || {});
+      },
+    },
+  },
+  outputs: {
+    default: {
+      possiblePrimaryParents: ["default"],
+      type: {
+        type: "object",
+        properties: {
+          value: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                properties: {
+                  type: "object",
+                  properties: {
+                    description: {
+                      type: "string",
+                    },
+                    identifier: {
+                      type: "object",
+                      properties: {
+                        uniqueName: {
+                          type: "string",
+                        },
+                      },
+                    },
+                    provisioningState: {
+                      type: "string",
+                    },
+                    sharingProfile: {
+                      type: "object",
+                      properties: {
+                        permissions: {
+                          type: "string",
+                        },
+                        groups: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              type: {
+                                type: "string",
+                              },
+                              ids: {
+                                type: "array",
+                                items: {
+                                  type: "string",
+                                },
+                              },
+                            },
+                          },
+                        },
+                        communityGalleryInfo: {
+                          type: "object",
+                          properties: {
+                            publisherUri: {
+                              type: "string",
+                            },
+                            publisherContact: {
+                              type: "string",
+                            },
+                            eula: {
+                              type: "string",
+                            },
+                            publicNamePrefix: {
+                              type: "string",
+                            },
+                            communityGalleryEnabled: {
+                              type: "boolean",
+                            },
+                            publicNames: {
+                              type: "array",
+                              items: {
+                                type: "string",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    softDeletePolicy: {
+                      type: "object",
+                      properties: {
+                        isSoftDeleteEnabled: {
+                          type: "boolean",
+                        },
+                      },
+                    },
+                    sharingStatus: {
+                      type: "object",
+                      properties: {
+                        aggregatedState: {
+                          type: "string",
+                        },
+                        summary: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              region: {
+                                type: "string",
+                              },
+                              state: {
+                                type: "string",
+                              },
+                              details: {
+                                type: "string",
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+                identity: {
+                  type: "object",
+                  properties: {
+                    principalId: {
+                      type: "string",
+                    },
+                    tenantId: {
+                      type: "string",
+                    },
+                    type: {
+                      type: "string",
+                    },
+                    userAssignedIdentities: {
+                      type: "object",
+                      additionalProperties: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          nextLink: {
+            type: "string",
+          },
+          securityProfile: {
+            type: "object",
+            properties: {
+              uefiSettings: {
+                type: "object",
+                properties: {
+                  signatureTemplateNames: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                    },
+                  },
+                  additionalSignatures: {
+                    type: "object",
+                    properties: {
+                      pk: {
+                        type: "object",
+                        properties: {
+                          type: {
+                            type: "string",
+                          },
+                          value: {
+                            type: "array",
+                            items: {
+                              type: "string",
+                            },
+                          },
+                        },
+                      },
+                      kek: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            type: {
+                              type: "object",
+                              additionalProperties: true,
+                            },
+                            value: {
+                              type: "object",
+                              additionalProperties: true,
+                            },
+                          },
+                        },
+                      },
+                      db: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          additionalProperties: true,
+                        },
+                      },
+                      dbx: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          additionalProperties: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        required: ["value"],
+      },
+    },
+  },
+};
+
+export default Galleries_List;

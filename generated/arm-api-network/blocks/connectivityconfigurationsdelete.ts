@@ -1,0 +1,77 @@
+import { AppBlock, events } from "@slflows/sdk/v1";
+import { makeAzureRequest } from "../utils/azureRequest";
+
+const ConnectivityConfigurations_Delete: AppBlock = {
+  name: "Connectivity Configurations / Delete",
+  description:
+    "Deletes a network manager connectivity configuration, specified by the resource group, network manager name, and connectivity configuration name",
+  category: "Connectivity Configurations",
+  inputs: {
+    default: {
+      config: {
+        networkManagerName: {
+          name: "Network Manager Name",
+          description: "Name of the network manager",
+          type: "string",
+          required: true,
+        },
+        configurationName: {
+          name: "Configuration Name",
+          description: "Name of the configuration",
+          type: "string",
+          required: true,
+        },
+        subscriptionId: {
+          name: "Subscription ID",
+          description:
+            "Azure subscription ID (optional, falls back to app-level default if not provided)",
+          type: "string",
+          required: false,
+        },
+        resourceGroupName: {
+          name: "Resource Group Name",
+          description:
+            "Azure resource group name (optional, falls back to app-level default if not provided)",
+          type: "string",
+          required: false,
+        },
+        force: {
+          name: "Force",
+          description:
+            "Deletes the resource even if it is part of a deployed configuration. If the configuration has been deployed, the service will do a cleanup deployment in the background, prior to the delete.",
+          type: "boolean",
+          required: false,
+        },
+      },
+      onEvent: async (input) => {
+        const url =
+          `https://management.azure.com/subscriptions/${input.event.inputConfig.subscriptionId || input.app.config.subscriptionId}/resourceGroups/${input.event.inputConfig.resourceGroupName || input.app.config.resourceGroupName}/providers/Microsoft.Network/networkManagers/${input.event.inputConfig.networkManagerName}/connectivityConfigurations/${input.event.inputConfig.configurationName}` +
+          "?api-version=2024-10-01" +
+          (input.event.inputConfig.force
+            ? `&force=${input.event.inputConfig.force}`
+            : "");
+
+        const result = await makeAzureRequest(
+          input,
+          url,
+          "DELETE",
+          undefined,
+          undefined,
+          false,
+        );
+        await events.emit(result || {});
+      },
+    },
+  },
+  outputs: {
+    default: {
+      possiblePrimaryParents: ["default"],
+      type: {
+        type: "object",
+        additionalProperties: true,
+      },
+    },
+  },
+};
+
+export default ConnectivityConfigurations_Delete;
